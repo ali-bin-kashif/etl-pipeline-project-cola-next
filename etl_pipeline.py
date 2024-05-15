@@ -2,34 +2,6 @@
 import pandas as pd
 import mysql.connector
 
-# Database server connection config
-db_config = {
-    'host': 'localhost',
-    'database': 'NEXT_COLA_OLTP',
-    'user': 'root',               
-    'password': 'ali123'           
-}
-
-# Making connection with the database
-connection = mysql.connector.connect(**db_config)
-
-def test_func(cursor):
-    query = "SELECT * FROM salesorder" 
-    data = pd.read_sql(query,connection)
-    print(data)
-    
-def main():
-    # Connect to the database
-    try:
-        with mysql.connector.connect(**db_config) as connection:
-            print('Connected to MySQL database')
-
-            with connection.cursor() as cursor:
-                test_func(cursor)
-
-    except mysql.connector.Error as e:
-        print(f"Error connecting to MySQL database: {e}")
-
 
 class ETLPipeline:
     
@@ -40,8 +12,30 @@ class ETLPipeline:
         self.dimensions = []
         self.facts = []
         
+        # Database server connection config
+        self.db_config = {
+            'host': 'localhost',
+            'database': 'NEXT_COLA_OLTP',
+            'user': 'root',               
+            'password': 'ali123'           
+        }
+    
+    
+    def check_connection(self):
+        # Connect to the database
+        try:
+            with mysql.connector.connect(**self.db_config) as connection:
+                print('Connected to MySQL database')
+
+        except mysql.connector.Error as e:
+            print(f"Error connecting to MySQL database: {e}")
+        
         
     def extract_data(self):
+        
+        # Making connection with the database
+        connection = mysql.connector.connect(**self.db_config)
+
         # Creating database cursor
         cursor = connection.cursor()
         
@@ -80,7 +74,6 @@ class ETLPipeline:
         purchase_order_details = self.tables_dict['purchaseorderdetail'].drop(['TotalAmount', 'DeliveryStatus'], axis=1)
         
         fact_purchases = purchaseorder.merge(purchase_order_details, on='OrderID')
-        print(fact_purchases)
         
         shipment = self.tables_dict['shipment']
         shipment_details = self.tables_dict['shipmentdetail']
@@ -96,10 +89,10 @@ class ETLPipeline:
         fact_names = ['fact_inventory', 'fact_purchases', 'fact_sales', 'fact_shipment']
         
         for i,name in enumerate(dim_names):
-            self.dimensions[i].to_csv(name+'.csv')
+            self.dimensions[i].to_csv('data/'+name+'.csv')
             
         for i,name in enumerate(fact_names):
-            self.facts[i].to_csv(name+'.csv')
+            self.facts[i].to_csv('data/'+name+'.csv')
         
         
         
