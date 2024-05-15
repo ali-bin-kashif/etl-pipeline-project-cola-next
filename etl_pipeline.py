@@ -37,6 +37,8 @@ class ETLPipeline:
     def __init__(self):
         self.name='next_cola_pipeline'
         self.tables_dict = {}
+        self.dimensions = []
+        self.facts = []
         
         
     def extract_data(self):
@@ -65,10 +67,47 @@ class ETLPipeline:
 
         dim_customer = self.tables_dict['customer']
         
+        # Creating fact tables for different data marts
+        
+        fact_inventory = self.tables_dict['inventory']
+        
+        salesorder = self.tables_dict['salesorder']
+        sales_order_details = self.tables_dict['salesorderdetail'].drop(['TotalAmount', 'DeliveryStatus'], axis=1)
+        
+        fact_sales = salesorder.merge(sales_order_details, on='OrderID')
+
+        purchaseorder = self.tables_dict['purchaseorder']
+        purchase_order_details = self.tables_dict['purchaseorderdetail'].drop(['TotalAmount', 'DeliveryStatus'], axis=1)
+        
+        fact_purchases = purchaseorder.merge(purchase_order_details, on='OrderID')
+        print(fact_purchases)
+        
+        shipment = self.tables_dict['shipment']
+        shipment_details = self.tables_dict['shipmentdetail']
+        
+        fact_shipment = shipment.merge(shipment_details , on="ShipmentID")
+        
+        self.dimensions = [dim_customer, dim_product, dim_supplier, dim_warehouse]
+        self.facts = [fact_inventory, fact_purchases, fact_sales, fact_shipment]
+        
+    def load_data(self):
+        
+        dim_names = ['dim_customer', 'dim_product', 'dim_supplier', 'dim_warehouse']
+        fact_names = ['fact_inventory', 'fact_purchases', 'fact_sales', 'fact_shipment']
+        
+        for i,name in enumerate(dim_names):
+            self.dimensions[i].to_csv(name+'.csv')
+            
+        for i,name in enumerate(fact_names):
+            self.facts[i].to_csv(name+'.csv')
+        
+        
+        
         
 if __name__ == "__main__":
 
     pipeline = ETLPipeline()
     pipeline.extract_data()
     pipeline.transform_data()
+    pipeline.load_data()
     
