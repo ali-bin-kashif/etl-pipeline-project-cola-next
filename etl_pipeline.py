@@ -14,10 +14,10 @@ class ETLPipeline:
         
         # Database server connection config
         self.db_config = {
-            'host': 'localhost',
+            'host': 'next-cola-oltp-database.c32iyywau6nz.ap-south-1.rds.amazonaws.com',
             'database': 'NEXT_COLA_OLTP',
-            'user': 'root',               
-            'password': 'ali123'           
+            'user': 'admin',               
+            'password': 'orobros123'           
         }
     
     
@@ -45,7 +45,9 @@ class ETLPipeline:
         
         # Creating a dictionary for table name as key and dataframe as value by loop
         for table in tables:
+            # print(table[0])
             query = 'SELECT * FROM ' + table[0]
+            
             self.tables_dict[table[0]] = pd.read_sql(query, connection)
             
 
@@ -53,30 +55,30 @@ class ETLPipeline:
         # Creating different data marts with their fact and dimensions tables (star schema)
         
         # First creating all the dimension tables
-        dim_supplier = self.tables_dict['supplier']
+        dim_supplier = self.tables_dict['Supplier']
         
-        dim_warehouse = self.tables_dict['warehouse'][['WarehouseID' ,'Capacity', 'OpeningHours', 'ClosingHours', 'ContactInfo']]
+        dim_warehouse = self.tables_dict['Warehouse'][['WarehouseID' ,'Capacity', 'OpeningHours', 'ClosingHours', 'ContactInfo']]
         
-        dim_product = self.tables_dict['product'][['ProductID', 'Name', 'Price', 'StockLevel', 'ReorderLevel', 'Discontinued']]
+        dim_product = self.tables_dict['Product'][['ProductID', 'Name', 'Price', 'StockLevel', 'ReorderLevel', 'Discontinued']]
 
-        dim_customer = self.tables_dict['customer']
+        dim_customer = self.tables_dict['Customer']
         
         # Creating fact tables for different data marts
         
-        fact_inventory = self.tables_dict['inventory']
+        fact_inventory = self.tables_dict['Inventory']
         
-        salesorder = self.tables_dict['salesorder']
-        sales_order_details = self.tables_dict['salesorderdetail'].drop(['TotalAmount', 'DeliveryStatus'], axis=1)
+        salesorder = self.tables_dict['SalesOrder']
+        sales_order_details = self.tables_dict['SalesOrderDetail'].drop(['TotalAmount', 'DeliveryStatus'], axis=1)
         
         fact_sales = salesorder.merge(sales_order_details, on='OrderID')
 
-        purchaseorder = self.tables_dict['purchaseorder']
-        purchase_order_details = self.tables_dict['purchaseorderdetail'].drop(['TotalAmount', 'DeliveryStatus'], axis=1)
+        purchaseorder = self.tables_dict['PurchaseOrder']
+        purchase_order_details = self.tables_dict['PurchaseOrderDetail'].drop(['TotalAmount', 'DeliveryStatus'], axis=1)
         
         fact_purchases = purchaseorder.merge(purchase_order_details, on='OrderID')
         
-        shipment = self.tables_dict['shipment']
-        shipment_details = self.tables_dict['shipmentdetail']
+        shipment = self.tables_dict['Shipment']
+        shipment_details = self.tables_dict['ShipmentDetail']
         
         fact_shipment = shipment.merge(shipment_details , on="ShipmentID")
         
@@ -89,18 +91,16 @@ class ETLPipeline:
         fact_names = ['fact_inventory', 'fact_purchases', 'fact_sales', 'fact_shipment']
         
         for i,name in enumerate(dim_names):
-            self.dimensions[i].to_csv('data/'+name+'.csv')
+            self.dimensions[i].to_csv('s3://next-cola-data-bucket/'+name+'.csv')
             
         for i,name in enumerate(fact_names):
-            self.facts[i].to_csv('data/'+name+'.csv')
-        
-        
-        
-        
-if __name__ == "__main__":
+            self.facts[i].to_csv('s3://next-cola-data-bucket/'+name+'.csv')
+              
+# if __name__ == "__main__":
 
-    pipeline = ETLPipeline()
-    pipeline.extract_data()
-    pipeline.transform_data()
-    pipeline.load_data()
-    
+pipeline = ETLPipeline()
+    # pipeline.extract_data()
+    # pipeline.transform_data()
+    # pipeline.load_data()
+    # pipeline.check_connection()
+        
