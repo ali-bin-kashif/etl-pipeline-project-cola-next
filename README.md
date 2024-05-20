@@ -20,3 +20,8 @@ An ETL pipeline is a process that involves three main steps: Extract, Transform,
 <p align="center">
 <img src="ERD_NEXT_COLA_OLTP.png" height="800" text>
 </p>
+
+## Data Flow Architecture diagram
+<p align="center">
+<img src="architecture_diagram.png" text>
+</p>
