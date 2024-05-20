@@ -4,8 +4,6 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 import etl_pipeline 
 
-global pipeline
-pipeline = ETLPipeline()
 
 default_args = {
     'owner': 'airflow',
@@ -27,19 +25,19 @@ dag = DAG(
 extract_data = PythonOperator(
     task_id='extract_data',
     dag=dag,
-    python_callable=etl_pipeline.pipeline.extract_data()
+    python_callable=etl_pipeline.pipeline.extract_data
 )
 
 transform_data = PythonOperator(
     task_id='transform_data',
     dag=dag,
-    python_callable=etl_pipeline.pipeline.transform_data()
+    python_callable=etl_pipeline.pipeline.transform_data
 )
 
 load_data = PythonOperator(
     task_id='load_data',
     dag=dag,
-    python_callable=etl_pipeline.pipeline.load_data()
+    python_callable=etl_pipeline.pipeline.load_data
 )
 
 extract_data >> transform_data >> load_data
