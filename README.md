@@ -21,6 +21,11 @@ An ETL pipeline is a process that involves three main steps: Extract, Transform,
 <img src="ERD_NEXT_COLA_OLTP.png" height="800" text>
 </p>
 
+## Steps Performed:
+- Engineered an ETL pipeline using Python and Apache Airflow, seamlessly extracting data from MySQL database
+- Utilized star schema for data marts derived from OLTP sources, enhancing data organization and accessibility.
+- Loaded data onto AWS S3 Bucket for scalable storage, ensuring high availability and durability of data assets.
+
 ## Data Flow Architecture diagram
 <p align="center">
 <img src="architecture_diagram.png" text>
